@@ -1,3 +1,5 @@
+-- dpi 6400 system2 400
+
 userInfo = {
   debug = 0,
   cpuLoad = 2,
@@ -30,7 +32,7 @@ userInfo = {
       {"Micro UZI", 1, 1, 0.8}
     },
     ["5.56"] = {
-      {"M416", 1, 2, 0.8},
+      {"M416", 1, 1, 0.8},
       {"SCAR-L", 1, 2, 0.8},
       {"QBZ", 1, 2, 0.8},
       {"G36C", 1, 2, 0.8},
@@ -132,7 +134,7 @@ pubg = {
   counter = 0,
   xCounter = 0,
   sleep = userInfo.cpuLoad,
-  sleepRandom = {userInfo.cpuLoad, userInfo.cpuLoad + 5},
+  sleepRandom = {userInfo.cpuLoad, userInfo.cpuLoad + 2},
   startTime = 0,
   prevTime = 0,
   scopeX1 = 1,
@@ -148,7 +150,7 @@ pubg = {
   bulletIndex = 0
 }
 
-pubg.xLengthForDebug = pubg.generalSensitivityRatio * 60
+pubg.xLengthForDebug = pubg.generalSensitivityRatio * 150
 
 pubg.renderDom = {
   switchTable = "",
@@ -162,8 +164,8 @@ function pubg.isAimingState(mode)
   local switch = {
     ["ADS"] = function()
       if userInfo.aimingSettings == "recommend" then
-        return IsMouseButtonPressed(3) 
-		-- and not IsModifierPressed("lshift")
+        -- and not IsModifierPressed("lshift")
+        return IsMouseButtonPressed(3)
       elseif userInfo.aimingSettings == "default" then
         return not IsModifierPressed("lshift") and not IsModifierPressed("lalt")
       elseif userInfo.aimingSettings == "ctrlmode" then
@@ -347,14 +349,12 @@ pubg["M416"] = function(gunName)
       interval = 85,
       ballistic = {
         {1, 0},
-        {2, 55},
-        {4, 19},
-        {8, 36},
-        {15, 41},
-        {20, 43},
-        {25, 45},
-        {30, 49},
-        {40, 52}
+        {2, 470},
+        {4, 210},
+        {8, 350},
+        {13, 400},
+        {20, 442},
+        {40, 480},
       }
     }
   )
@@ -423,15 +423,21 @@ function pubg.execOptions(gunName, options)
       ballisticIndex = ballisticIndex + 1
     end
   end
-
-  for i = 1, #ballisticConfig1 do
-    if i == 1 then
-      ballisticConfig2[i] = ballisticConfig1[i]
-    else
+  ballisticConfig2[1] = ballisticConfig1[1]
+  for i = 2, #ballisticConfig1 do
       ballisticConfig2[i] = ballisticConfig2[i - 1] + ballisticConfig1[i]
-    end
   end
-
+  OutputLogMessage(gunName .. ":\n")
+  OutputLogMessage("duration" .. ":" .. options.interval * #ballisticConfig2 .. "\n")
+  OutputLogMessage("amount" .. ":" .. #ballisticConfig2 .. "\n")
+  OutputLogMessage("interval" .. ":" .. options.interval .. "\n")
+  OutputLogMessage("ballistic" .. ":")
+  for i = 1, #ballisticConfig2 do
+    OutputLogMessage(ballisticConfig2[i] .. ", ")
+  end
+  OutputLogMessage("\n")
+  OutputLogMessage("ctrlmodeRatio" .. ":" .. gunInfo[4] .. "\n")
+  OutputLogMessage("\n\n")
   return {
     duration = options.interval * #ballisticConfig2,
     amount = #ballisticConfig2,
@@ -499,7 +505,8 @@ function pubg.auto(options)
   local y =
     math.ceil(
     (pubg.currentTime - pubg.startTime) / (options.interval * (pubg.bulletIndex - 1)) *
-      options.ballistic[pubg.bulletIndex]
+      options.ballistic[pubg.bulletIndex] -
+      0.5
   ) - pubg.counter
   -- OutputLogMessage(y)
 
